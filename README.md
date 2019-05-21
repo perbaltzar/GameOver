@@ -2,6 +2,8 @@
 
 Using [Phaser3](https://phaser.io/), [Socket.io](https://socket.io/) and [Parcel](https://parceljs.org/)
 
+[Live Demo](https://localghost-game.netlify.com)
+
 ### Made by:
 
 - Elias Johansson - [@eliasjohansson](https://github.com/eliasjohansson)
@@ -58,3 +60,6 @@ Magic Cliffs Environment - [ansimuz](https://itch.io/profile/ansimuz)
 - [#24 Feature / Name tags above player sprites](https://github.com/eliasjohansson/GameOver/pull/24)
 - [#25 Feature / Handle shooting in turns logic](https://github.com/eliasjohansson/GameOver/pull/25)
 - [#26 Feature / In-Game thrust bar for shooting](https://github.com/eliasjohansson/GameOver/pull/26)
+- [#27 Feature / Scrolling background and Z-Depth](https://github.com/eliasjohansson/GameOver/pull/27)
+- [#28 Feature / Deploy Online at Netlify and Heroku](https://github.com/eliasjohansson/GameOver/pull/28)
+- [#29 Feature / New eventlistners and styled controller](https://github.com/eliasjohansson/GameOver/pull/29)
