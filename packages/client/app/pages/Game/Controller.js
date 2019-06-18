@@ -7,6 +7,11 @@ import { Shoot, Jump } from '../../components/Controller/ActionButtons';
 import FlashMessages from '../../components/Controller/FlashMessages';
 import CPlayerInfo from '../../components/Controller/PlayerInfo';
 
+// Movement functions
+import {
+  startMove, stopMove, jump, startShoot, releaseShoot,
+} from './functions/movement';
+
 const PlayerInfo = styled(CPlayerInfo)``;
 const ActionButtons = styled.div`
   display: grid;
@@ -78,15 +83,6 @@ const Controls = styled.div`
   }
 `;
 
-/* const Hamburger = styled.div`
-  margin-left: auto;
-  grid-row: 1 / 2
-  grid-column: 1 / 2;
-  height: 55px;
-  width: 55px;
-  background-color: grey;
-`; */
-
 const Controller = () => {
   const [health, setHealth] = useState(100);
   const { game } = useStore(state => state.game);
@@ -101,33 +97,6 @@ const Controller = () => {
   const [inventory, setInventory] = useState(player.inventory);
   const [selectedWeapon, setSelectedWeapon] = useState(inventory[0]);
   const [messages, setMessages] = useState([]);
-  const startMove = (dir, speed) => {
-    socket.emit('player start move', dir, speed);
-  };
-
-  const stopMove = () => {
-    socket.emit('player stop move');
-  };
-
-  const jump = () => {
-    socket.emit('player jump');
-  };
-
-  const startShoot = () => {
-    if (inventory.length > 0) {
-      socket.emit('player start shoot');
-    } else {
-      const message = {
-        message: "You don't have weapons, search for a box!",
-        type: 'pickup',
-      };
-      setMessages([message, ...messages]);
-    }
-  };
-
-  const releaseShoot = () => {
-    socket.emit('player release shoot', selectedWeapon);
-  };
 
   // INVENTORY AND WEAPON SELECTION
   const toggleInventory = () => {
@@ -199,7 +168,7 @@ const Controller = () => {
 
   useEffect(() => {
     if (!keys.left && !keys.right) {
-      stopMove();
+      stopMove(socket);
     }
   }, [keys]);
 
@@ -230,7 +199,7 @@ const Controller = () => {
       startMove(1);
     }
     if (e.key === 'ArrowUp') {
-      jump();
+      jump(socket);
     }
 
     if (e.key === 'Space') {
@@ -254,7 +223,7 @@ const Controller = () => {
     }
 
     if (e.key === 'Space') {
-      releaseShoot();
+      releaseShoot(socket, selectedWeapon);
     }
   };
 
@@ -286,12 +255,12 @@ const Controller = () => {
           <Shoot
             onKeyDown={keyDown}
             onKeyUp={keyUp}
-            onMouseDown={startShoot}
-            onMouseUp={releaseShoot}
-            onTouchStart={startShoot}
-            onTouchEnd={releaseShoot}
+            onMouseDown={() => startShoot(inventory, socket, messages, setMessages)}
+            onMouseUp={() => releaseShoot(socket, selectedWeapon)}
+            onTouchStart={() => startShoot(inventory, socket, messages, setMessages)}
+            onTouchEnd={() => releaseShoot(socket, selectedWeapon)}
           />
-          <Jump onMouseDown={jump} onTouchStart={jump} />
+          <Jump onMouseDown={() => jump(socket)} onTouchStart={() => jump(socket)} />
         </ActionButtons>
         <Move
           options={{
@@ -308,10 +277,10 @@ const Controller = () => {
           onMove={(e, data) => {
             const dir = data.direction.x === 'right' ? 1 : -1;
             const speed = data.force;
-            startMove(dir, speed);
+            startMove(dir, speed, socket);
           }}
           onEnd={() => {
-            stopMove();
+            stopMove(socket);
           }}
         />
       </Controls>
