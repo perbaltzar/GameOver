@@ -12,6 +12,9 @@ import {
   startMove, stopMove, jump, startShoot, releaseShoot,
 } from './functions/movement';
 
+// Inventory functions
+import { toggleInventory, updateInventory } from './functions/inventory';
+
 const PlayerInfo = styled(CPlayerInfo)``;
 const ActionButtons = styled.div`
   display: grid;
@@ -98,16 +101,6 @@ const Controller = () => {
   const [selectedWeapon, setSelectedWeapon] = useState(inventory[0]);
   const [messages, setMessages] = useState([]);
 
-  // INVENTORY AND WEAPON SELECTION
-  const toggleInventory = () => {
-    setOpenInventory(!openInventory);
-  };
-
-  const selectWeapon = (item) => {
-    setSelectedWeapon(item);
-    socket.emit('player select inventory item', item);
-  };
-
   // FLASH MESSAGE
   const toggleFlashMessage = (deleteMessage) => {
     setMessages(messages.filter(message => message !== deleteMessage));
@@ -122,47 +115,23 @@ const Controller = () => {
   }, [messages]);
 
   // UPDATE INVENTORY
+  const selectWeapon = (item) => {
+    setSelectedWeapon(item);
+    socket.emit('player select inventory item', item);
+  };
+
   useEffect(() => {
     socket.on('player update inventory', (id, updatedInventory) => {
-      if (socket.id === id) {
-        setInventory(updatedInventory);
-
-        // If inventory is empty
-        if (
-          updatedInventory.length < 1
-          && Object.getOwnPropertyNames(selectedWeapon).length !== 0
-        ) {
-          const message = {
-            message: `Your ${selectedWeapon.name} 
-            ran out of ammo and you got nothing to equip, find some boxes`,
-            type: 'pickup',
-          };
-          selectWeapon({});
-          setMessages([message, ...messages]);
-        } else {
-          let isStillInInventory = false;
-
-          // Check if used weapon still is in inventory
-          updatedInventory.forEach((item) => {
-            if (item.key === selectedWeapon.key) {
-              isStillInInventory = true;
-              selectWeapon(item);
-            }
-          });
-
-          // Equip next weapon if the used weapon ran out of ammo
-          if (!isStillInInventory) {
-            const message = {
-              message: `Your ${selectedWeapon.name} ran out of ammo, equipped ${
-                updatedInventory[0].name
-              }`,
-              type: 'pickup',
-            };
-            selectWeapon(updatedInventory[0]);
-            setMessages([message, ...messages]);
-          }
-        }
-      }
+      updateInventory(
+        socket,
+        id,
+        setInventory,
+        updatedInventory,
+        selectWeapon,
+        selectedWeapon,
+        messages,
+        setMessages,
+      );
     });
   }, [selectedWeapon, messages]);
 
@@ -182,7 +151,6 @@ const Controller = () => {
     return () => socket.removeAllListeners();
   }, []);
 
-  // Movement
   const keyDown = (e) => {
     if (e.key === 'ArrowLeft') {
       setKeys({
@@ -289,7 +257,7 @@ const Controller = () => {
       <PlayerInfo
         player={player}
         health={health}
-        toggleInventory={toggleInventory}
+        toggleInventory={() => toggleInventory(setOpenInventory, openInventory)}
         openInventory={openInventory}
         inventory={inventory}
         selectedWeapon={selectedWeapon}
