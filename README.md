@@ -1,3 +1,5 @@
+Mirrored from the original [repository](https://github.com/eliasjohansson/GameOver)
+
 <img src="localghost.png" width="100%">
 A Worms tribute.
 
